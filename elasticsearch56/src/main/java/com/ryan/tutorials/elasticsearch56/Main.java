@@ -15,7 +15,9 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
@@ -24,7 +26,7 @@ import com.ryan.tutorials.elasticsearch56.model.Ticket;
 
 public class Main {
     
-    private static String m_elasticSearchHostname = "localhost";
+    private static String m_elasticSearchHostname = "10.8.77.20";
     private static Integer m_elasticSearchPort = 9200;
     private static String m_elasticsearchIndex = "reqtracker_tickets";
 
@@ -74,13 +76,28 @@ public class Main {
             
             SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
             
+            BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+            BoolQueryBuilder roleQueryBuilder = QueryBuilders.boolQuery();
+            
             List<String> ticketIds = new ArrayList<>();
+            ticketIds.add("9070081");
             ticketIds.add("9070082");
             ticketIds.add("9070083");
+            ticketIds.add("9070084");
+            ticketIds.add("9070085");
             
-            searchSourceBuilder.query(QueryBuilders.termsQuery("ticketId", ticketIds)); 
+            
+
+            roleQueryBuilder.must(QueryBuilders.termsQuery("ticketId", ticketIds));
+
+            roleQueryBuilder.mustNot(QueryBuilders.termsQuery("ticketId", "9070083"));
+
+            boolQueryBuilder.must(roleQueryBuilder);
+            searchSourceBuilder.query(boolQueryBuilder); 
             searchSourceBuilder.from(0); 
             searchSourceBuilder.size(5);
+            
+
             
             searchRequest.source(searchSourceBuilder);
             
@@ -92,6 +109,8 @@ public class Main {
                 System.err.println(hit.getSource());
             }
             
+            //searchSourceBuilder.query(bqb);
+//            client.search(bqb);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
